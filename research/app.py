@@ -18,28 +18,18 @@ app = Flask(__name__)
 # -------- Login ------------------------------------------------------------- #
 @app.route('/', methods=['GET', 'POST'])
 
-
-def login():
-    if not session.get('logged_in'):
-        form = forms.LoginForm(request.form)
-        if request.method == 'POST':
-            username = request.form['username'].lower()
-            password = request.form['password']
-           # if form.validate():
-                #if helpers.credentials_valid(username, password):
-                   # session['logged_in'] = True
-                    #session['username'] = username
-                   # return json.dumps({'status': 'Login successful'})
-               # return json.dumps({'status': 'Invalid user/pass'})
-            #return json.dumps({'status': 'Both fields required'})
-        return render_template('login.html', form=form)
-   # user = helpers.get_user()
-    return render_template('home.html')
+@app.route('/login', methods=['POST'])
+def do_admin_login():
+if request.form['password'] == 'password' and request.form['username'] == 'admin':
+session['logged_in'] = True
+else:
+flash('wrong password!')
+eturn render_template('home.html')
 
 @app.route("/logout")
 def logout():
-    session['logged_in'] = False
-    return redirect(url_for('login'))
+session['logged_in'] = False
+return home()
 
 
 # -------- Signup ---------------------------------------------------------- #
