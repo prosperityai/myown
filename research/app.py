@@ -3,7 +3,7 @@
 from scripts import tabledef
 from scripts import forms
 from scripts import helpers
-from flask import Flask, redirect, url_for, render_template, request, session,abort
+from flask import Flask, redirect, url_for, render_template, request, session
 import json
 import sys
 import os
@@ -18,18 +18,28 @@ app = Flask(__name__)
 # -------- Login ------------------------------------------------------------- #
 @app.route('/', methods=['GET', 'POST'])
 
-@app.route('/login', methods=['POST'])
-def do_admin_login():
-if request.form['password'] == 'password' and request.form['username'] == 'admin':
-session['logged_in'] = True
-else:
-flash('wrong password!')
-eturn render_template('home.html')
+
+def login():
+    if not session.get('logged_in'):
+        form = forms.LoginForm(request.form)
+        if request.method == 'POST':
+            username = request.form['username'].lower()
+            password = request.form['password']
+            if form.validate():
+                if helpers.credentials_valid(username, password):
+                    session['logged_in'] = True
+                    session['username'] = username
+                    return json.dumps({'status': 'Login successful'})
+                return json.dumps({'status': 'Invalid user/pass'})
+            return json.dumps({'status': 'Both fields required'})
+        return render_template('login.html', form=form)
+    user = helpers.get_user()
+    return render_template('home.html', user=user)
 
 @app.route("/logout")
 def logout():
-session['logged_in'] = False
-return home()
+    session['logged_in'] = False
+    return redirect(url_for('login'))
 
 
 # -------- Signup ---------------------------------------------------------- #
@@ -97,3 +107,4 @@ def settings():
 if __name__ == "__main__":
     app.secret_key = os.urandom(12)  # Generic key for dev purposes only
     app.run(debug=True, use_reloader=True)
+
